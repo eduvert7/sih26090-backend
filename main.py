@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from product_route import router as product_router
 from catalog_routes import router as catalog_router
+from voice_routes import router as voice_router
 app = FastAPI()
 
 app.add_middleware(
@@ -14,6 +15,7 @@ app.add_middleware(
 
 app.include_router(product_router)
 app.include_router(catalog_router)
+app.include_router(voice_router)
 
 @app.get("/")
 def read_root():
