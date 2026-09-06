@@ -3,6 +3,7 @@ from supabase import create_client
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from typing import Optional
 
 load_dotenv()
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
@@ -16,11 +17,14 @@ class SignupRequest(BaseModel):
 
 @router.post("/signup")
 def signup(request: SignupRequest):
-    response = supabase.auth.sign_up({
-        "email": request.email,
-        "password": request.password
-    })
-    return {"message": "Signup successful", "user": response.user}
+    try:
+        response = supabase.auth.sign_up({
+            "email": request.email,
+            "password": request.password
+        })
+        return {"message": "Signup successful", "user": response.user}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 class LoginRequest(BaseModel):
@@ -29,19 +33,29 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(request: LoginRequest):
-    response = supabase.auth.sign_in_with_password({
-        "email": request.email,
-        "password": request.password
-    })
-    return {
-        "message": "Login successful",
-        "access_token": response.session.access_token
-    }
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": request.email,
+            "password": request.password
+        })
+
+        return {
+            "message": "Login successful",
+            "access_token": response.session.access_token
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @router.get("/products")
-def get_products():
-    response = supabase.table("products").select("*").execute()
+def get_products(tag: Optional[str] = None):
+    query = supabase.table("products").select("*")
+
+    if tag:
+        query = query.ilike("tags", f"%{tag}%")
+
+    response = query.execute()
     return response.data
 
 
