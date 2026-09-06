@@ -14,7 +14,7 @@ router = APIRouter()
 # Set to True to bypass Gemini and test the storage/database pipeline independently
 USE_FAKE_DATA = False
 
-@router.post("/catalog", summary="Catalog a product from an image", description="Upload a product image to generate an AI-written title, description, tags, and artisan story, then save it to the database.")
+@router.post("/catalog", summary="Catalog a product from an image", description="Upload a product image to generate an AI-written title, category, price suggestion, description, tags, and artisan story, then save it to the database.")
 async def catalog_product(file: UploadFile = File(...)):
     try:
         contents = await file.read()
@@ -24,16 +24,20 @@ async def catalog_product(file: UploadFile = File(...)):
         if USE_FAKE_DATA:
             data = {
                 "title": "Handwoven Ceramic Tea Set",
+                "category": "Home & Kitchen",
+                "suggested_price": 450,
                 "description": "A beautiful handcrafted tea set made using traditional pottery techniques.",
                 "tags": "ceramic, handmade, tea set, pottery, artisan",
                 "story": "This tea set carries generations of craft tradition, shaped by hand on a potter's wheel."
             }
         else:
             prompt = """
-            Analyze this product image, made by a marginalized artisan for an online marketplace.
+            Analyze this product image, made by a marginalized artisan for an online marketplace in India.
             Return ONLY valid JSON with this exact structure, no extra text:
             {
               "title": "short catchy product title",
+              "category": "one general product category, e.g. Home Decor, Kitchenware, Clothing, Jewelry, Toys",
+              "suggested_price": a realistic price in Indian Rupees as a plain number, no currency symbol,
               "description": "2-3 sentence marketplace description",
               "tags": "comma-separated list of 4-5 relevant tags",
               "story": "a short 3-4 sentence story about the craft/artisan tradition behind this type of product"
